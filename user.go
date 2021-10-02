@@ -4,7 +4,7 @@ import "net"
 
 type User struct {
 	Name string
-	Addr string
+	Addr string // 当前客户端的ip地址
 	C    chan string
 	conn net.Conn
 }
