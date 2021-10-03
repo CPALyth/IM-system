@@ -33,7 +33,7 @@ func NewServer(ip string, port int) *Server {
 
 // 广播消息的方法
 func (this *Server) BroadCast(user *User, msg string) {
-	sendMsg := "[" + user.Addr + "] " + msg
+	sendMsg := "[" + user.Name + "] " + msg
 	this.Message <- sendMsg
 }
 
@@ -85,7 +85,7 @@ func (this *Server) Handler(conn net.Conn) {
 		select {
 		case <-isLive:
 			// 不做任何事情, 为了激活select, 更新下面的定时器
-		case <-time.After(time.Second * 30):
+		case <-time.After(time.Second * 300):
 			// 已经超时, 将当前用户踢出群聊
 			user.SendMsg("你被踢了\n")
 			// 销毁管道
