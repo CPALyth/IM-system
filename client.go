@@ -3,7 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"net"
+	"os"
 )
 
 type Client struct {
@@ -31,6 +33,12 @@ func NewClient(serverIp string, serverPort int) *Client {
 	return client
 }
 
+// 处理server回应的消息
+func (this *Client) DealResponse() {
+	// 读取接收缓存区的内容 到 标准输出中, 永久阻塞监听
+	io.Copy(os.Stdout, this.conn)
+}
+
 func (this *Client) menu() bool {
 	var flag int
 
@@ -49,6 +57,18 @@ func (this *Client) menu() bool {
 	}
 }
 
+func (this *Client) updateName() bool {
+	fmt.Println(">>> 请输入用户名:")
+	fmt.Scanln(&this.Name)
+	msg := "rename|" + this.Name + "\n"
+	_, err := this.conn.Write([]byte(msg))
+	if err != nil {
+		fmt.Println("conn write err:", err)
+		return false
+	}
+	return true
+}
+
 func (this *Client) Run() {
 	for this.flag != 0 {
 		for !this.menu() {
@@ -63,6 +83,7 @@ func (this *Client) Run() {
 			break
 		case 3:
 			fmt.Println("更新用户名")
+			this.updateName()
 			break
 		}
 	}
@@ -84,6 +105,7 @@ func main() {
 		fmt.Println("连接服务器失败")
 		return
 	}
+	go client.DealResponse()
 	fmt.Println("连接服务器成功")
 	client.Run()
 }
