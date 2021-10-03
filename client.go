@@ -6,6 +6,7 @@ import (
 	"io"
 	"net"
 	"os"
+	"time"
 )
 
 type Client struct {
@@ -57,7 +58,7 @@ func (this *Client) menu() bool {
 	}
 }
 
-func (this *Client) updateName() bool {
+func (this *Client) UpdateName() bool {
 	fmt.Println(">>> 请输入用户名:")
 	fmt.Scanln(&this.Name)
 	msg := "rename|" + this.Name + "\n"
@@ -69,6 +70,28 @@ func (this *Client) updateName() bool {
 	return true
 }
 
+func (this *Client) PublicChat() {
+	// 提示用户输入消息
+	var chatMsg string
+	fmt.Println(">>> 请输入聊天内容, exit退出")
+	fmt.Println(&chatMsg)
+	for chatMsg != "exit" {
+		// 消息不为空则发送给服务器
+		if len(chatMsg) != 0 {
+			msg := chatMsg + "\n"
+			_, err := this.conn.Write([]byte(msg))
+			if err != nil {
+				fmt.Println("conn Write err:", err)
+				break
+			}
+		}
+		time.Sleep(time.Second)
+		chatMsg = ""
+		fmt.Println(">>> 请输入聊天内容, exit退出")
+		fmt.Scanln(&chatMsg)
+	}
+}
+
 func (this *Client) Run() {
 	for this.flag != 0 {
 		for !this.menu() {
@@ -76,14 +99,14 @@ func (this *Client) Run() {
 
 		switch this.flag {
 		case 1:
-			fmt.Println("已选择公聊模式")
+			this.PublicChat()
 			break
 		case 2:
 			fmt.Println("已选择私聊模式")
 			break
 		case 3:
 			fmt.Println("更新用户名")
-			this.updateName()
+			this.UpdateName()
 			break
 		}
 	}
