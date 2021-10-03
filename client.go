@@ -70,6 +70,7 @@ func (this *Client) UpdateName() bool {
 	return true
 }
 
+// 公聊模式
 func (this *Client) PublicChat() {
 	// 提示用户输入消息
 	var chatMsg string
@@ -92,6 +93,45 @@ func (this *Client) PublicChat() {
 	}
 }
 
+// 查询在线用户
+func (this *Client) SelectUsers() {
+	msg := "who\n"
+	_, err := this.conn.Write([]byte(msg))
+	if err != nil {
+		fmt.Println("conn write err:", err)
+		return
+	}
+}
+
+// 私聊模式
+func (this *Client) PrivateChat() {
+	var remoteName string
+	var chatMsg string
+	this.SelectUsers()
+	fmt.Println("请输入聊天对象用户名, exit退出:")
+	fmt.Scanln(&remoteName)
+	for remoteName != "exit" {
+		fmt.Println("请输入消息内容, exit退出")
+		fmt.Scanln(&chatMsg)
+		for chatMsg != "exit" {
+			if len(chatMsg) != 0 {
+				msg := "to|" + remoteName + "|" + chatMsg + "\n"
+				_, err := this.conn.Write([]byte(msg))
+				if err != nil {
+					fmt.Println("conn Write err:", err)
+					break
+				}
+			}
+			chatMsg = ""
+			fmt.Println("请输入消息内容, exit退出")
+			fmt.Scanln(&chatMsg)
+		}
+		this.SelectUsers()
+		fmt.Println("请输入聊天对象用户名, exit退出:")
+		fmt.Scanln(&remoteName)
+	}
+}
+
 func (this *Client) Run() {
 	for this.flag != 0 {
 		for !this.menu() {
@@ -102,10 +142,9 @@ func (this *Client) Run() {
 			this.PublicChat()
 			break
 		case 2:
-			fmt.Println("已选择私聊模式")
+			this.PrivateChat()
 			break
 		case 3:
-			fmt.Println("更新用户名")
 			this.UpdateName()
 			break
 		}
